@@ -6,17 +6,17 @@ Therefore I created a little framework around ocrmypdf from https://github.com/j
 
 The workflow is as follows:
 
-## Scan paper and send per mai
-Put the paper-mail on a scanner, which is capeable of sending the scanned pdf to a email server. For example I use EPDON WorkForce WF-2760DWF. It was cheap, is easy to handle and even the scanning function is not blocked when the paint is empty.
+## Scan paper and send per mail
+Put the paper-mail on a scanner, which is capable of sending the scanned PDF to a email server. For example I use EPDON WorkForce WF-2760DWF. It was cheap, is easy to handle and even the scanning function is not blocked when the paint is empty.
 
 ## check mail
-I host a littel mail server on my raspberry pi, which is collecting the mails. Every hour (i think this is sufficient) a cronjob checks if some new mail have arrived. 
+I host a little mail server on my raspberry pi, which is collecting the mails. Every hour (i think this is sufficient) a cronjob checks if some new mail have arrived. 
 
 ## ocr mailed pdfs
-If a new mail with new pdf is available it is downloaded and OCRed mit OcrMyPDF (https://github.com/jbarlow83/OCRmyPDF)
+If a new mail with new pdf is available it is downloaded and OCRed with OcrMyPDF (https://github.com/jbarlow83/OCRmyPDF)
 
 ## categorize pdfs from content
-There are 5 JSON files, which define some kind of categories, to sort the files. This is a bit stupid string searching in the ocred content. „string_to_bea_searched“:“what this string stands for“
+There are 5 JSON files, which define some kind of categories, to sort the files. This is a bit stupid string searching in the ocred content. „string_to_be_searched“:“what this string stands for“
 
 
 The JSON files are:
@@ -41,15 +41,15 @@ DATE_NAME_DOCTYPE_PSEUDO-ID_COMPANY.pdf
 If a company can be found from CUSTIMER_ID.json and COMPANY_WO_ID.json, two files are created and saved. 
 
 ## save to correct NAS folder
-After the filename way created, the files is moved to a NAS. (Use NASSERVER, NASUSER, NASPATH, please exhange ssh-keys for easy login)
+After the filename way created, the files is moved to a NAS. (Use NASSERVER, NASUSER, NASPATH, please exchange ssh-keys for easy login)
 The files are moved to NASFOLDER/YEAR/CATEGORY/DATE_NAME_DOCTYPE_PSEUDO-ID_COMPAN.pdf
 
 ## report to some mail address
-A report is created and send via mail to the MAILTO mailadress, with the information about the identified file, and the webdav adress where it is availbale (use WEBDAV_PATH)
+A report is created and send via mail to the MAILTO mail address, with the information about the identified file, and the webdav address where it is available (use WEBDAV_PATH)
 
 ## small mail interface
-I figured out, that i ofteh have to update the json files with new customer-id or similar. (At least during the first year)
-So i added a litte communication interface via mail. Just send mails from your normal mail acount to the same address as the scanner sends the pdfs to. You can send the following:
+I figured out, that i often have to update the json files with new customer-id or similar. (At least during the first year)
+So i added a litte communication interface via mail. Just send mails from your normal mail account to the same address as the scanner sends the pdfs to. You can send the following:
 
 „#CAT company category“
 e.g. #CAT Allianz Insurance
@@ -85,8 +85,6 @@ e.g. #CWOIDCAT Reinholdstraße Allianz Insurance
 
 After adding new key, you will also receive a mail (use REPORT) with some info about it.
 
-## logfile
-finally a logfile is also storred to to NAS
 
 # how to setup:
 the setup is draft, please contact me if i should add something
@@ -95,6 +93,7 @@ i recommend to setup a pi with rasbian-jessie-lite, but for sure you can use any
 
 sudo apt-get update
 install ocrmypdf (refer to https://github.com/jbarlow83/OCRmyPDF)
+ocrmypdf must be in the path
  
 sudo apt-get install python-pip 
 sudo pip2 install PyPDF2
@@ -119,4 +118,26 @@ OK
 select de_DE.UTF-8 UTF-8 as default
 
 ssh keys mit NAS austauschen
+
+
+
+The content of the configfile is described in:
+	config/config.json.tmpl
+Update toyour specific environment and rename to config.json
+
+Modify also the configfiles in 
+	test_ressources/mail_test/*.json
+	test_ressources/main_test/*.json
+	test_ressources/nas_test/*.json
+to get the unittests run.
+
+Finally run the tool with:
+
+python handle_documents.py PATH_TO_FOLDER_WITH_CONFIG_FILE
+
+	
+
+
+
+
 
