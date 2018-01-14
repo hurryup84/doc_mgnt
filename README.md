@@ -126,9 +126,9 @@ The content of the configfile is described in:
 Update toyour specific environment and rename to config.json
 
 Modify also the configfiles in 
-	test_ressources/mail_test/*.json
-	test_ressources/main_test/*.json
-	test_ressources/nas_test/*.json
+*	test_ressources/mail_test/*.json
+*	test_ressources/main_test/*.json
+*	test_ressources/nas_test/*.json
 to get the unittests run.
 
 ## run the tool
