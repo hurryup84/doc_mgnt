@@ -131,6 +131,7 @@ Modify also the configfiles in
 	test_ressources/nas_test/*.json
 to get the unittests run.
 
+## run the tool
 Finally run the tool with:
 
 python handle_documents.py PATH_TO_FOLDER_WITH_CONFIG_FILE
