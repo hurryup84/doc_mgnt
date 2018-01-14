@@ -1,0 +1,8 @@
+{
+            "MAILFROM" : "stefan@wsjlo05fchnoryyd.myfritz.net",
+            "MAILTO" : "ocr",
+            "MAILUSER" : "stefan",
+            "MAILPASS" : "stefan",
+            "IMAP_SERVER" : "wsjlo05fchnoryyd.myfritz.net",
+            "SMTP_SERVER" : "wsjlo05fchnoryyd.myfritz.net"
+        }
