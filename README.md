@@ -119,17 +119,27 @@ select de_DE.UTF-8 UTF-8 as default
 
 ssh keys mit NAS austauschen
 
-
+## the config file
 
 The content of the configfile is described in:
 	config/config.json.tmpl
 Update toyour specific environment and rename to config.json
 
-Modify also the configfiles in 
-*	test_ressources/mail_test/*.json
-*	test_ressources/main_test/*.json
-*	test_ressources/nas_test/*.json
+## the unittests
+Modify also the template configfiles in 
+*	test_ressources/mail_test/*.json.tmpl
+*	test_ressources/main_test/*.json.tmpl
+*	test_ressources/nas_test/*.json.tmpl
 to get the unittests run.
+Afterwards rename the extension from "json.tmpl" files to "json"
+
+There are two types of unittets. "fast" and "slow"
+As the OCR on my py takes upt to 10 minutes per page, I moved the OCR test to an extra testset.
+
+Test are eecuted this way:
+* python test_handel_documents.py # to run all tests 
+* python test_handel_documents.py slow # to run tests which take long on pi
+* python test_handel_documents.py fast # to run only test which run fast on pi (most tests)
 
 ## run the tool
 Finally run the tool with:
