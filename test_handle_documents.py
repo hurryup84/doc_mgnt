@@ -736,17 +736,7 @@ class Test_handle_documents_main(unittest.TestCase):
                  
 
         self.orig_config = json.load(open(pjoin(self.path, "test_resources" , "main_test", "config.json")))
-       # {
-       #     "MAILFROM" : "ocr@wsjlo05fchnoryyd.myfritz.net",
-       #     "MAILTO" : "stefan",
-       #     "MAILUSER" : "ocr",
-       #     "MAILPASS" : "ocrocr",
-       #     "IMAP_SERVER" : "wsjlo05fchnoryyd.myfritz.net",
-       #     "SMTP_SERVER" : "wsjlo05fchnoryyd.myfritz.net",
-       #     "NASFOLDER" : "/volume1/MyDocuments/test/",
-       #     "NASUSER" : "ocr",
-       #     "NASSERVER" : "192.168.2.101"
-       # }
+
         self.remove_config = json.load(open(pjoin(self.path, "test_resources" , "nas_test", "user1.json")))
         self.remove_config["NASFOLDER"] = "%s*" %(self.remove_config["NASFOLDER"])
 

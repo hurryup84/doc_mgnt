@@ -14,8 +14,49 @@ import locale
 locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 
+def convert_jpg_to_pdf(filename_jpg,folder):
+    fileending = filename_jpg.split(".")[-1]
+    filename_pdf = filename_jpg.replace(fileending, "pdf")
+    proc = subprocess.Popen(['convert',
+                             pjoin(folder, filename_jpg), 
+                             pjoin(folder, filename_pdf) ,
+                               ],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+    proc.wait()
+    result_err = repr(proc.stderr.readline())
+    result = repr(proc.stdout.readlines())
+    if result_err != "''":
+        logger.error(result_err)
+        return result_err
+    else:
+        logger.info("file successfully converted, try to rotate now")
+
+    proc = subprocess.Popen(['convert',
+                            '-rotate',
+                            '90',
+                             pjoin(folder,filename_pdf), 
+                             pjoin(folder,filename_pdf),
+                               ],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.PIPE)
+    proc.wait()
+    result_err = repr(proc.stderr.readline())
+    result = repr(proc.stdout.readlines())
+    if result_err != "''":
+        logger.error(result_err)
+    else:
+        logger.info("file successfully rotated")
+    
+
+
 def ocr(folder):
     '''tested'''
+
+    for filename in os.listdir(folder):
+        if filename.lower().endswith(".jpg") or filename.lower().endswith("JPEG"):
+            logger.info("%s: is jpeg file, coverting to pdf" %filename)
+            convert_jpg_to_pdf(filename,folder)
 
     for filename in os.listdir(folder):
         if filename.endswith(".pdf") or filename.endswith(".PDF"):
