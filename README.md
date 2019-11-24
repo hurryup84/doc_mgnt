@@ -104,6 +104,7 @@ sudo apt-get install subversion
 sudo apt-get install qpdf
 sudo apt-get install ghostscript
 sudo apt-get install poppler-utils
+sudo apt-get install imagemagick
 
 Mailserver :
 sudo modprobe ipv6
