@@ -583,9 +583,21 @@ class Test_ocr_pdf(unittest.TestCase):
         self.pdf_with_simple_text = pjoin(self.tempfolder, "sample_with.pdf") 
         self.pdf_without_simple_text = pjoin(self.tempfolder, "sample_without.pdf")
         self.pdf_with_simple_text_short = pjoin(self.tempfolder,  "sample_with_short.pdf") 
-        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")        
+        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")
+        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")
+        self.jpeg_with_simple_text_pdf = pjoin(self.tempfolder,  "sample_jpeg_with_short.pdf")        
         self.path = os.path.abspath(".") 
         pass
+
+    def test_jpeg_with_simple_text_with_ocr(self):
+        shutil.copy(pjoin(self.path,"test_resources/jpegs/geheim.JPG"),self.jpeg_with_simple_text )
+        ocr_pdf.ocr(self.tempfolder)
+        textfile = pjoin(self.tempfolder, "ocred_text.txt")
+        subprocess.call(['pdftotext', self.jpeg_with_simple_text_pdf,textfile ])
+        with open(textfile, 'r') as myfile:
+            test_content = myfile.read().replace('\n', '').replace(" ", "")
+        self.expected_string = "geheimzuhalten\x0c"
+        self.assertEqual(test_content, self.expected_string)  
 
     def test_pdf_with_simple_text_without_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_without_simple_text )
@@ -605,7 +617,8 @@ class Test_ocr_pdf(unittest.TestCase):
         with open(textfile, 'r') as myfile:
             test_content = myfile.read().replace('\n', '').replace(" ", "")
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)    
+        self.assertEqual(test_content, self.expected_string)   
+         
 
     def test_pdf_with_simple_text_without_ocr_multiple_files(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
