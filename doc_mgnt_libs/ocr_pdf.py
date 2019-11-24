@@ -61,7 +61,7 @@ def ocr(folder):
     for filename in os.listdir(folder):
         if filename.endswith(".pdf") or filename.endswith(".PDF"):
             new_filename = "%s.pdf" % filename.split(".")[0]
-            logger.debug("%s: checking if has already text" %filename)
+            logger.debug("%s: checking if document has already text" %filename)
             out_file = pjoin(folder, "dummy.txt")
             subprocess.call(['pdftotext', pjoin(folder, filename), out_file])
             with open(out_file, 'r') as myfile:
