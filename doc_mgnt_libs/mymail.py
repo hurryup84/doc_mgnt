@@ -6,9 +6,9 @@
 from datetime import date
 from email.header import decode_header
 from email.mime.application import MIMEApplication
-from email.MIMEImage import MIMEImage
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.utils import COMMASPACE, formatdate
 from os.path import basename
 import email
@@ -38,7 +38,7 @@ def build_mail_content(key_info, mail_info, config, mail_info_path={}):
         content = ""
     if mail_info:
         content = "%sNew PDFs stored\n\n" % content
-        for filename, category in mail_info.iteritems():
+        for filename, category in mail_info.items():
             content = "%s category: %s \n %s \n" %(content, category, filename)
             full_path = "%s/%s" %(root_path, mail_info_path[filename])
             content = "%s available at: \n %s \n\n" %(content, full_path)
@@ -114,7 +114,7 @@ def update_keys(subjects, keyfile_path):
         else:
             warn = "Get not well formed email subject, regard keylen"
             logger.error(warn)
-            key_info = "%s \n %s" (key_info, warn)
+            key_info = "%s \n %s" %(key_info, warn)
 
         logger.info(key_info) 
         key_infos = "%s\n%s" %( key_info, key_infos)  
@@ -148,22 +148,21 @@ def get_mail(download_folder, config):
             logger.error('Error fetching mail.')
             raise
         emailBody = messageParts[0][1]
-        mail = email.message_from_string(emailBody)
+        #import pdb; pdb.set_trace()
+        mail = email.message_from_string(str(emailBody,'utf-8'))
+        #mail = email.message_from_string(emailBody)
         default_charset = 'ASCII'        
-        dh = decode_header(mail['subject'])
-        emailSubject = ''.join([ unicode(t[0], t[1] or default_charset) for t in dh ])
+        emailSubject = decode_header(mail['subject'])[0][0]
 
         if "mattis" in mail['from'] or "myfritz.net" in mail['from']:      
             if emailSubject.startswith("#"):
                 subjects.append(emailSubject)
             for part in mail.walk():
-                imapSession.store(data[0].replace(' ',','),'+FLAGS','\Seen')
                 if part.get_content_maintype() == 'multipart':
                     continue
                 if part.get('Content-Disposition') is None:
                     continue
                 fileName = part.get_filename()
-                imapSession.store(data[0].replace(' ',','),'+FLAGS','\Seen')
                 if bool(fileName):
                     filePath = os.path.join(download_folder, fileName)
                 elif not emailSubject.startswith("#"):

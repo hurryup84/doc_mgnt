@@ -1,32 +1,48 @@
 # -*- coding: iso-8859-1 -*-
-import PyPDF2
 import shutil
 import re
 import os
+import PyPDF2
 from datetime import datetime
 from datetime import date
 pjoin = os.path.join
 import subprocess
 from random import randint
 import json
-import mymail as mymail
+#import mymail as mymail
+from pdfminer3.layout import LAParams, LTTextBox
+from pdfminer3.pdfpage import PDFPage
+from pdfminer3.pdfinterp import PDFResourceManager
+from pdfminer3.pdfinterp import PDFPageInterpreter
+from pdfminer3.converter import PDFPageAggregator
+from pdfminer3.converter import TextConverter
+import io
+
+
+
+
 
 import logging
 logger = logging.getLogger('root')
 
 import locale
-locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+#locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 
 
 
 def search_in_content(lookup_type, lookup_dict, content, bad_return):
 	'''tested'''
-	for key in lookup_dict.iterkeys():
+	findings = []
+	for key in lookup_dict.keys():
 		if key in content:
-			logger.debug("searched for: %s found: %s" %(lookup_type, lookup_dict[key]))			
-			return lookup_dict[key]
+			logger.debug("searched for: %s found: %s" %(lookup_type, lookup_dict[key]))	
+			findings.append(key)
+			#return lookup_dict[key]
 	logger.warning("could not find a match for %s" % lookup_type)
-	return bad_return
+	if len(findings) > 0:
+		return lookup_dict[sorted(findings)[0]]
+	else:
+		return bad_return
 
 
 def pdeudounique():
@@ -101,7 +117,7 @@ def nearest(base, dates):
 	for date in dates:
 		nearness[abs(date - base)] = date
 		logger.debug("%s has a diff of %s" %(date, abs(date - base)))
-	minimum = min(nearness.iterkeys())
+	minimum = min(nearness.keys())
 	return nearness[minimum]
 
 
@@ -258,7 +274,22 @@ def search_for_date(content):
 
 	return selected_date
 
+def get_text(in_file):
 
+	resource_manager = PDFResourceManager()
+	fake_file_handle = io.StringIO()
+	converter = TextConverter(resource_manager, fake_file_handle, laparams=LAParams())
+	page_interpreter = PDFPageInterpreter(resource_manager, converter)
+	with open(in_file, 'rb') as fh:
+		for page in PDFPage.get_pages(fh,
+									caching=True,
+									check_extractable=True):
+			page_interpreter.process_page(page)
+		pdftext = fake_file_handle.getvalue()
+	converter.close()
+	fake_file_handle.close()
+	content=pdftext.replace('\n', '').replace(" ", "")
+	return content
 
 def analyse(folder, output_folder, keyfile_path):
 	'''tested'''
@@ -278,10 +309,7 @@ def analyse(folder, output_folder, keyfile_path):
 			logger.info("-------------------------------------")
 			logger.debug("processing %s " % pdf)
 			in_file = pjoin(folder, pdf)
-			out_file = pjoin(folder, "tmp.txt")
-			subprocess.call(['pdftotext', in_file, out_file])
-			with open(out_file, 'r') as myfile:
-				content=myfile.read().replace('\n', '').replace(" ", "").decode('utf-8')
+			content = get_text(in_file)
 			folder_tags, file_tags , second_folder = analyse_content(
 											content,
 											CATEGORY,

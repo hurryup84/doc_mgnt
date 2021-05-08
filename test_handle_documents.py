@@ -9,10 +9,11 @@ from datetime import datetime
 import os, shutil
 import sys
 import json
+import time
 import tempfile
 import subprocess
 import locale
-locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+#locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
 pjoin = os.path.join
  
 
@@ -139,7 +140,7 @@ class Test_analyse(unittest.TestCase):
         print("Executing :%s" %self.id())
 
         self.maxDiff = None
-        self.tempfolder = tempfile.mkdtemp()
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.json_folder = pjoin(self.tempfolder, "main_test")
         self.ocr_folder = pjoin(self.tempfolder, "ocr_folder")
         self.output_folder = pjoin(self.tempfolder, "output_folder", "pdfs")
@@ -350,42 +351,38 @@ class Test_search_date(unittest.TestCase):
         self.assertEqual(read_pdf.search_for_date(content), self.expected_date)
 
 
-class Test_copy_files_to_nas(unittest.TestCase):
+
+class Test_new_scanned_files(unittest.TestCase):
     def setUp(self):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
 
-
         self.path = os.path.abspath(".") 
         self.test_file = pjoin(self.path, "test_resources" , "pdfs", "pdf_with_simple_text.pdf") 
-        self.tempfolder = tempfile.mkdtemp()
-        self.tempfolder_name = self.tempfolder.split("/")[-1]
+        self.test_file_short = pjoin(self.path, "test_resources" , "pdfs", "pdf_with_simple_text_short.pdf") 
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.tempfolder_dd = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.tempfolder_si = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.test_config = json.load(open(pjoin(self.path, "test_resources" , "nas_test", "user1.json")))
+        self.test_config["DIGITAL_DEPOT"] = self.tempfolder_dd
+        self.test_config["SCAN_INPUT"] = self.tempfolder_si
 
-        self.test_config["NASFOLDER"] = "%s%s" %(self.test_config["NASFOLDER"], self.tempfolder_name) 
-       # import pdb; pdb.set_trace()
-        shutil.copy(self.test_file,pjoin(self.tempfolder, "some_file.txt"))
+        shutil.copy(self.test_file,pjoin(self.tempfolder, self.test_config["SCAN_INPUT"]))
+        shutil.copy(self.test_file_short,pjoin(self.tempfolder, self.test_config["SCAN_INPUT"]))
         pass
 
-    def test_copy_files_to_nas(self):
-        nas.save_files_to_nas(self.tempfolder, self.test_config)
 
+    def test_new_scanned_files(self):
+        nas.check_scan_folder(self.tempfolder, self.test_config)
 
-        self.assertEqual(nas.list_files_on_nas(self.test_config), "['some_file.txt\\n']")
-        nas.remove_folder_from_nas(self.test_config)
-
-    def test_remove_files_from_nas(self):
-        self.root_config = json.load(open(pjoin(self.path, "test_resources" , "nas_test", "user1.json")))
-
-        nas.save_files_to_nas(self.tempfolder, self.test_config)
-        self.assertEqual(nas.list_files_on_nas(self.test_config), "['some_file.txt\\n']")
-        nas.remove_folder_from_nas(self.test_config)
-        self.assertEqual(nas.list_files_on_nas(self.root_config), "[]")        
-
+        self.assertEqual(str(os.listdir(self.tempfolder)), "['pdf_with_simple_text_short.pdf', 'pdf_with_simple_text.pdf']")
+        self.assertEqual(str(os.listdir(self.test_config["SCAN_INPUT"])), "[]")
 
     def tearDown(self):
         try:
             shutil.rmtree(self.tempfolder)
+            shutil.rmtree(self.tempfolder_dd)
+            shutil.rmtree(self.tempfolder_si)
             #print "removed %s" % self.tempfolder
         except OSError as why:
             print(why)
@@ -396,15 +393,19 @@ class Test_send_mail_key(unittest.TestCase):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
         self.path = os.path.abspath(".") 
+        self.tempfolder_dd = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.orig_config = json.load(open(pjoin(self.path, "test_resources" , "mail_test", "user2.json")))
 
         self.test_config = json.load(open(pjoin(self.path, "test_resources" , "mail_test", "user1.json")))
-        self.tempfolder = tempfile.mkdtemp()
+        self.test_config["DIGITAL_DEPOT"] = self.tempfolder_dd
+
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
 
     def test_sending_one_pdf_mail(self):
         self.path = os.path.abspath(".") 
         self.test_file = pjoin(self.path, "test_resources" , "pdfs", "pdf_with_simple_text.pdf") 
         self.assertEqual(mymail.send_mail("content", "to_be_ocred", self.orig_config, [self.test_file]), True)
+        time.sleep(1)
         mymail.get_mail(self.tempfolder,self.test_config)
         self.assertEqual(["pdf_with_simple_text.pdf"], os.listdir(self.tempfolder))
 
@@ -414,32 +415,29 @@ class Test_send_mail_key(unittest.TestCase):
         self.test_file2 = pjoin(self.path, "test_resources" , "pdfs", "pdf_without_simple_text.pdf") 
         mymail.send_mail("content", "to_be_ocred", self.orig_config, [self.test_file])
         mymail.send_mail("content", "to_be_ocred", self.orig_config, [self.test_file2]) 
+        time.sleep(1)
         mymail.get_mail(self.tempfolder,self.test_config)
         self.assertEqual(sorted(["pdf_with_simple_text.pdf", "pdf_without_simple_text.pdf"]), sorted(os.listdir(self.tempfolder)))
-
-        
 
     def test_sending_key_mails(self):
         self.assertEqual(mymail.send_mail("Testcontent", "#Testsubject", self.orig_config), True)
         mymail.send_mail("Testcontent", "#Testsubject2", self.orig_config)
+        time.sleep(1)
         self.assertEqual(sorted(mymail.get_mail(self.tempfolder,self.test_config)), sorted([u"#Testsubject",u"#Testsubject2" ]))
 
     def test_sending_key_mails_one_without(self):
         mymail.send_mail("Testcontent", "Testsubject", self.orig_config)
         mymail.send_mail("Testcontent", "#Testsubject2", self.orig_config)
+        time.sleep(1)
         self.assertEqual(sorted(mymail.get_mail(self.tempfolder,self.test_config)), sorted([u"#Testsubject2" ]))
 
     def test_sending_key_mails_all_without(self):
         self.assertEqual(mymail.send_mail("", "Testsubject", self.orig_config), False)
 
-
-
-
-
-
     def tearDown(self):
         try:
             shutil.rmtree(self.tempfolder)
+            shutil.rmtree(self.tempfolder_dd)
             #print "removed %s" % self.tempfolder
         except OSError as why:
             print(why)
@@ -451,7 +449,7 @@ class Test_save_files_local(unittest.TestCase):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
 
-        self.tempfolder = tempfile.mkdtemp()
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.source_folder = pjoin(self.tempfolder, "source")
         self.dest_folder = pjoin(self.tempfolder, "dest")
         self.path = os.path.abspath(".") 
@@ -462,8 +460,8 @@ class Test_save_files_local(unittest.TestCase):
     def test_copy_all_files(self):
         self.src_files = os.listdir( self.source_folder )
         copy_dict = {}
-        for file in self.src_files:
-            copy_dict[pjoin(self.dest_folder, file)]= pjoin(self.source_folder, file)
+        for file_ in self.src_files:
+            copy_dict[pjoin(self.dest_folder, file_)] = pjoin(self.source_folder, file_)
         self.assertEqual(nas.save_files_local(copy_dict, self.logfile, self.dest_folder), True  )
         self.dst_files = os.listdir( self.dest_folder )
         #self.src_files.append("logfile_%s.log" %datetime.strftime(datetime.now(), "%Y-%m-%d_%H"))
@@ -475,8 +473,8 @@ class Test_save_files_local(unittest.TestCase):
     def test_copy_all_files_some_duplicated(self):
         self.src_files = os.listdir( self.source_folder )
         copy_dict = {}
-        for file in self.src_files:
-            copy_dict[pjoin(self.dest_folder, file)]= pjoin(self.source_folder, file)
+        for file_ in self.src_files:
+            copy_dict[pjoin(self.dest_folder, file_)]= pjoin(self.source_folder, file_)
         copy_dict[pjoin(self.dest_folder, "duplicated.pdf")] = pjoin(self.source_folder, self.src_files[0])
         self.assertEqual(nas.save_files_local(copy_dict, self.logfile, self.dest_folder), True  )
         self.dst_files = os.listdir( self.dest_folder )
@@ -502,7 +500,7 @@ class Test_update_keys(unittest.TestCase):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
 
-        self.tempfolder = tempfile.mkdtemp()
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.json_folder = pjoin(self.tempfolder, "main_test")
         self.path = os.path.abspath(".") 
         shutil.copytree(pjoin(self.path, "test_resources", "main_test"), self.json_folder)
@@ -558,7 +556,7 @@ class Test_handle_subjects(unittest.TestCase):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
 
-        self.tempfolder = tempfile.mkdtemp()
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.json_folder = pjoin(self.tempfolder, "main_test")
         self.path = os.path.abspath(".") 
         shutil.copytree(pjoin(self.path, "test_resources", "main_test"), self.json_folder)
@@ -579,43 +577,24 @@ class Test_ocr_pdf(unittest.TestCase):
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
 
-        self.tempfolder = tempfile.mkdtemp()
-        self.pdf_with_simple_text = pjoin(self.tempfolder, "sample_with.pdf") 
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        elf.config = {"OCR":"True"}
         self.pdf_without_simple_text = pjoin(self.tempfolder, "sample_without.pdf")
-        self.pdf_with_simple_text_short = pjoin(self.tempfolder,  "sample_with_short.pdf") 
-        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")
-        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")
-        self.jpeg_with_simple_text_pdf = pjoin(self.tempfolder,  "sample_jpeg_with_short.pdf")        
+        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")      
         self.path = os.path.abspath(".") 
-        pass
-
-    def test_jpeg_with_simple_text_with_ocr(self):
-        shutil.copy(pjoin(self.path,"test_resources/jpegs/geheim.JPG"),self.jpeg_with_simple_text )
-        ocr_pdf.ocr(self.tempfolder)
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.jpeg_with_simple_text_pdf,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "")
-        self.expected_string = "geheimzuhalten\x0c"
-        self.assertEqual(test_content, self.expected_string)  
+        pass 
 
     def test_pdf_with_simple_text_without_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_without_simple_text )
-        ocr_pdf.ocr(self.tempfolder)
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.pdf_without_simple_text,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "")
+        ocr_pdf.ocr(self.tempfolder,self.config)
+        test_content = read_pdf.get_text(self.pdf_without_simple_text)
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string)
 
     def test_pdf_with_simple_text_with_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
-        ocr_pdf.ocr(self.tempfolder)
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.pdf_without_simple_text,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "")
+        ocr_pdf.ocr(self.tempfolder,self.config)
+        test_content = read_pdf.get_text(self.pdf_without_simple_text)
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string)   
          
@@ -623,60 +602,56 @@ class Test_ocr_pdf(unittest.TestCase):
     def test_pdf_with_simple_text_without_ocr_multiple_files(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text_short.pdf"),self.pdf_without_simple_text_short )        
-        ocr_pdf.ocr(self.tempfolder)
-
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.pdf_without_simple_text,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "")    
+        ocr_pdf.ocr(self.tempfolder,self.config)
+        test_content = read_pdf.get_text(self.pdf_without_simple_text)  
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string)
-
-        textfile_short = pjoin(self.tempfolder, "ocred_text_short.txt")
-        subprocess.call(['pdftotext', self.pdf_without_simple_text_short,textfile_short ])
-        with open(textfile_short, 'r') as myfile:
-            test_content_short = myfile.read().replace('\n', '').replace(" ", "") 
+        test_content_short = read_pdf.get_text(self.pdf_without_simple_text_short)  
         self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"  
         self.assertEqual(test_content_short, self.expected_string_short)  
 
-    def test_pdf_with_simple_text_with_ocr__multiple_files(self):
-        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_with_simple_text )
-        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text_short.pdf"),self.pdf_with_simple_text_short )        
-        ocr_pdf.ocr(self.tempfolder)
-
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.pdf_with_simple_text,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "") 
-
-        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)
-
-        #import pdb; pdb.set_trace()
-        textfile_short = pjoin(self.tempfolder, "ocred_text_short.txt")
-        subprocess.call(['pdftotext', self.pdf_with_simple_text_short,textfile_short ])
-        with open(textfile_short, 'r') as myfile:
-            test_content_short = myfile.read().replace('\n', '').replace(" ", "") 
-        self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"                
-
+              
     def test_pdf_with_simple_text_with_and_without_ocr_multiple_files(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text_short.pdf"),self.pdf_with_simple_text_short )        
-        ocr_pdf.ocr(self.tempfolder)
-
-        textfile = pjoin(self.tempfolder, "ocred_text.txt")
-        subprocess.call(['pdftotext', self.pdf_without_simple_text,textfile ])
-        with open(textfile, 'r') as myfile:
-            test_content = myfile.read().replace('\n', '').replace(" ", "")    
+        ocr_pdf.ocr(self.tempfolder,self.config)
+        test_content = read_pdf.get_text(self.pdf_without_simple_text)  
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string)
-
-        textfile_short = pjoin(self.tempfolder, "ocred_text_short.txt")
-        subprocess.call(['pdftotext', self.pdf_with_simple_text_short,textfile_short ])
-        with open(textfile_short, 'r') as myfile:
-            test_content_short = myfile.read().replace('\n', '').replace(" ", "") 
+        test_content_short = read_pdf.get_text(self.pdf_with_simple_text_short)
         self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"    
 
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.tempfolder)
+            #print "removed %s" % self.tempfolder
+        except OSError as why:
+            print(why)
+
+
+class Test_ocr_not_supported_pdf(unittest.TestCase):
+    def setUp(self):
+        print("------------------------------------------------------------")
+        print("Executing :%s" %self.id())
+        self.config = {"OCR":"False"}
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.pdf_with_simple_text = pjoin(self.tempfolder, "sample_with.pdf") 
+        self.pdf_without_simple_text = pjoin(self.tempfolder, "sample_without.pdf")
+        self.pdf_with_simple_text_short = pjoin(self.tempfolder,  "sample_with_short.pdf")       
+        self.path = os.path.abspath(".") 
+        pass
+
+    def test_pdf_with_simple_text_without_ocr_can_not_do_ocr(self):
+        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
+        self.assertEqual(False, ocr_pdf.ocr(self.tempfolder,self.config))
+
+    def test_pdf_with_simple_text_with_ocr_can_not_do_ocr(self):
+        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_with_simple_text )
+        self.assertEqual(True, ocr_pdf.ocr(self.tempfolder,self.config)) 
+        test_content = read_pdf.get_text(self.pdf_with_simple_text)
+        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
+        self.assertEqual(test_content, self.expected_string) 
+          
 
 
     def tearDown(self):
@@ -686,6 +661,37 @@ class Test_ocr_pdf(unittest.TestCase):
         except OSError as why:
             print(why)
 
+
+
+class Test_ocr_jpeg_pdf(unittest.TestCase):
+    def setUp(self):
+        print("------------------------------------------------------------")
+        print("Executing :%s" %self.id())
+        self.config = {"OCR":"True"}
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")
+        self.jpeg_with_simple_text_pdf = pjoin(self.tempfolder,  "sample_jpeg_with_short.pdf")         
+        self.path = os.path.abspath(".") 
+        pass
+
+    def test_jpeg_with_simple_text_with_ocr(self):
+        shutil.copy(pjoin(self.path,"test_resources/jpegs/geheim.JPG"),self.jpeg_with_simple_text )
+        ocr_pdf.ocr(self.tempfolder, self.config)
+        test_content = read_pdf.get_text(self.jpeg_with_simple_text_pdf)
+        self.expected_string = "geheimzuhalten\x0c"
+        self.assertEqual(test_content, self.expected_string)  
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.tempfolder)
+            #print "removed %s" % self.tempfolder
+        except OSError as why:
+            print(why)
+
+
+
+
+
 class Test_update_key_dict(unittest.TestCase):
     def setUp(self):
         print("------------------------------------------------------------")
@@ -693,7 +699,7 @@ class Test_update_key_dict(unittest.TestCase):
 
         import tempfile
 
-        self.tempfolder = tempfile.mkdtemp()
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
         self.test_dict = {"test_key": "test_value"}
         json.dump(self.test_dict, open(pjoin(self.tempfolder, "test_key.txt"),'w'),  ensure_ascii=False)        
         json.dump(self.test_dict, open(pjoin(self.tempfolder, "test_key_untouch.txt"),'w'), ensure_ascii=False)         
@@ -709,7 +715,7 @@ class Test_update_key_dict(unittest.TestCase):
     def test_category_add_umlaut_value(self):
         self.keys = json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt")))
         mymail.update_key_dict(self.tempfolder, "test_key_umlaut.txt", "new_key_with", "new_value_withä")
-        self.expected_dict = {"test_key":"test_value", "new_key_with":"new_value_withä".decode("utf-8")}
+        self.expected_dict = {"test_key":"test_value", "new_key_with":"new_value_withä"}
         loaded_dict = json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt")))
         self.assertEqual(loaded_dict["new_key_with"], self.expected_dict["new_key_with"])
         self.assertDictContainsSubset(json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt"))), self.expected_dict)
@@ -717,16 +723,16 @@ class Test_update_key_dict(unittest.TestCase):
     def test_category_add_umlaut_key(self):
         self.keys = json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt")))
         mymail.update_key_dict(self.tempfolder, "test_key_umlaut.txt", "new_key_withä", "new_value_with")
-        self.expected_dict = {"test_key":"test_value", "new_key_withä".decode("utf-8") :"new_value_with"}
+        self.expected_dict = {"test_key":"test_value", "new_key_withä" :"new_value_with"}
         loaded_dict = json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt")))
-        self.assertEqual(loaded_dict["new_key_withä".decode("utf-8")], self.expected_dict["new_key_withä".decode("utf-8")])
+        self.assertEqual(loaded_dict["new_key_withä"], self.expected_dict["new_key_withä"])
         self.assertDictContainsSubset(json.load(open(pjoin(self.tempfolder, "test_key_umlaut.txt"))), self.expected_dict)        
 
 
     def test_category_not_add(self):
         self.keys = json.load(open(pjoin(self.tempfolder, "test_key.txt")))
         mymail.update_key_dict(self.tempfolder, "test_key_untouch.txt", "new_key", "new_value")
-        self.expected_dict = {"test_key":"test_value".decode("utf-8")}
+        self.expected_dict = {"test_key":"test_value"}
         self.assertDictContainsSubset(json.load(open(pjoin(self.tempfolder, "test_key.txt"))), self.expected_dict)        
 
     def tearDown(self):
@@ -742,48 +748,35 @@ class Test_handle_documents_main(unittest.TestCase):
     def setUp(self): 
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
-
-
         self.path = os.path.abspath(".") 
-
-                 
-
         self.orig_config = json.load(open(pjoin(self.path, "test_resources" , "main_test", "config.json")))
-
-        self.remove_config = json.load(open(pjoin(self.path, "test_resources" , "nas_test", "user1.json")))
-        self.remove_config["NASFOLDER"] = "%s*" %(self.remove_config["NASFOLDER"])
-
-        self.tempfolder = tempfile.mkdtemp()      
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.tempfolder_dd = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt_dd")
+        self.orig_config["DIGITAL_DEPOT"] = self.tempfolder_dd
         pass
 
-    def test_main_no_config_path(self):
-        self.assertEqual(handle_documents.main(["handle_documents.py"]), False)
-
-    def test_main_wrong_config_path(self):
-        self.assertEqual(handle_documents.main(["handle_documents.py", "/tmp/"]), False)
-
-
+    #def test_main_no_config_path(self):
+    #    self.assertEqual(handle_documents.main(["handle_documents.py"]), False)
+#
+ #   def test_main_wrong_config_path(self):
+  #      self.assertEqual(handle_documents.main(["handle_documents.py", "/tmp/"]), False)
 
     def test_main_with_key_and_pdf_mail(self):
         self.path = os.path.abspath(".") 
         self.test_file = pjoin(self.path, "test_resources" , "pdfs", "pdf_with_simple_text.pdf") 
+        self.test_file_short = pjoin(self.path, "test_resources" , "pdfs", "pdf_with_simple_text_short.pdf") 
         self.config_path = pjoin(self.path, "test_resources" , "main_test")
         #pre_state = nas.list_files_on_nas(self.orig_config).split("\n")
         mymail.send_mail("content", "to_be_ocred", self.orig_config, [self.test_file])
         mymail.send_mail("Testcontent", "#Testsubject", self.orig_config)
+        shutil.copy(self.test_file_short,pjoin(self.tempfolder, self.orig_config["SCAN_INPUT"]))
         self.assertEqual(handle_documents.main(["handle_documents.py", self.config_path]), True)
-        #post_state = nas.list_files_on_nas(self.orig_config).split("\n")
-        #self.assertEqual(pre_state, post_state)
-        #for each in pre_state:
-         #   post_state.remove(each)
-        #self.remove_config["NASFOLDER"]= pjoin(remove_config["NASFOLDER"], post_state[0].replace("\n", ""))
-        nas.remove_folder_from_nas(self.remove_config)
 
  
-
     def tearDown(self):
         try:
             shutil.rmtree(self.tempfolder)
+            shutil.rmtree(self.tempfolder_dd)
             #print "removed %s" % self.tempfolder
         except OSError as why:
             print(why)
@@ -801,23 +794,30 @@ if __name__ == '__main__':
     fast.addTest(unittest.makeSuite(Test_handle_subjects))
     fast.addTest(unittest.makeSuite(Test_update_key_dict))
 
-    fast.addTest(unittest.makeSuite(Test_copy_files_to_nas))
+    
 
     slow = unittest.TestSuite()
-    slow.addTest(unittest.makeSuite(Test_ocr_pdf))
+    if json.load(open(pjoin(os.path.abspath(".") ,
+                            "test_resources" ,
+                             "main_test",
+                              "config.json")))["OCR"] == "True":
+        slow.addTest(unittest.makeSuite(Test_ocr_pdf))
+        slow.addTest(unittest.makeSuite(Test_ocr_jpeg_pdf))  
+    slow.addTest(unittest.makeSuite(Test_new_scanned_files))
+    slow.addTest(unittest.makeSuite(Test_ocr_not_supported_pdf))
     slow.addTest(unittest.makeSuite(Test_send_mail_key))
-    slow.addTest(unittest.makeSuite(Test_copy_files_to_nas))
     slow.addTest(unittest.makeSuite(Test_handle_documents_main))
+
 
     if len(sys.argv) == 2:
         try:
             suite = eval(sys.argv[1])
             unittest.TextTestRunner().run(suite)
         except NameError as e:
-            print "please give valid test plan"
-            print "%s fast (to run only fast tests)" % sys.argv[0]
-            print "%s slow (to run only slow tests, including OCR, Mailcheck etc.)" % sys.argv[0]
-            print "%s      (to run all test)" % sys.argv[0]
+            print( "please give valid test plan")
+            print("%s fast (to run only fast tests)" % sys.argv[0])
+            print("%s slow (to run only slow tests, including OCR, Mailcheck etc.)" % sys.argv[0])
+            print("%s      (to run all test)" % sys.argv[0])
     else:
         unittest.TextTestRunner().run(eval("fast"))
         unittest.TextTestRunner().run(eval("slow"))

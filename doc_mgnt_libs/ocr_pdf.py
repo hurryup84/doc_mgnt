@@ -3,6 +3,7 @@
 # Walk through directory tree, replacing all files with OCR'd version
 # Contributed by DeliciousPickle@github
 
+
 import logging
 logger = logging.getLogger('root')
 import os
@@ -10,9 +11,7 @@ import subprocess
 import sys
 pjoin = os.path.join
 import time
-import locale
-locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
-
+import doc_mgnt_libs.read_pdf as read_pdf
 
 def convert_jpg_to_pdf(filename_jpg,folder):
     fileending = filename_jpg.split(".")[-1]
@@ -50,25 +49,24 @@ def convert_jpg_to_pdf(filename_jpg,folder):
     
 
 
-def ocr(folder):
+def ocr(folder, config):
     '''tested'''
 
-    for filename in os.listdir(folder):
-        if filename.lower().endswith(".jpg") or filename.lower().endswith("JPEG"):
-            logger.info("%s: is jpeg file, coverting to pdf" %filename)
-            convert_jpg_to_pdf(filename,folder)
+    #for filename in os.listdir(folder):
+    #    if filename.lower().endswith(".jpg") or filename.lower().endswith("JPEG"):
+    #        logger.info("%s: is jpeg file, coverting to pdf" %filename)
+    #        convert_jpg_to_pdf(filename,folder)
 
     for filename in os.listdir(folder):
         if filename.endswith(".pdf") or filename.endswith(".PDF"):
             new_filename = "%s.pdf" % filename.split(".")[0]
             logger.debug("%s: checking if document has already text" %filename)
             out_file = pjoin(folder, "dummy.txt")
-            subprocess.call(['pdftotext', pjoin(folder, filename), out_file])
-            with open(out_file, 'r') as myfile:
-                test_content=myfile.read().replace('\n', '').replace(" ", "")
+            test_content = read_pdf.get_text(pjoin(folder, new_filename))
             if len(test_content ) > 13:
                 logger.info("%s: found already text in pdf. skippin ocr" %filename)
-            else:
+                return True
+            elif config["OCR"] == "True":
                 logger.info("%s: no text in pdf. doing ocr now" %filename)
                 cmd = ["ocrmypdf",  "--deskew", "--tesseract-timeout", "1800", "-l", "deu" , pjoin(folder, filename) , pjoin(folder, new_filename) ]
                 t_begin = time.time()
@@ -82,3 +80,6 @@ def ocr(folder):
                     logger.info("%s: OCR complete" %filename)
                 logger.debug(result)
                 logger.info("%s:ocr took %.1f seonds" % (filename, (t_end - t_begin)))
+                return True
+            else:
+                return False
