@@ -8,6 +8,7 @@ pjoin = os.path.join
 import subprocess
 from random import randint
 import json
+
 #import mymail as mymail
 from pdfminer3.layout import LAParams, LTTextBox
 from pdfminer3.pdfpage import PDFPage
@@ -17,16 +18,15 @@ from pdfminer3.converter import PDFPageAggregator
 from pdfminer3.converter import TextConverter
 import io
 
-
-
-
-
 import logging
 logger = logging.getLogger('root')
 
 import locale
-locale.setlocale(locale.LC_ALL, 'de_DE')
-
+try:
+	locale.setlocale(locale.LC_ALL, 'de_DE')
+except locale.Error as e:
+	logger.error("Please set system locale")
+	logger.error("Script is using %s %s as locale" % locale.getlocale())
 
 
 def search_in_content(lookup_type, lookup_dict, content, bad_return):
