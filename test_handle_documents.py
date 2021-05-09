@@ -152,6 +152,7 @@ class Test_analyse(unittest.TestCase):
         self.path = os.path.abspath(".") 
         shutil.copytree(pjoin(self.path, "test_resources", "main_test"), self.json_folder)
         self.pdf_with_simple_text = pjoin(self.ocr_folder, "sample_with.pdf") 
+        self.pdf_with_simple_text_UC = pjoin(self.ocr_folder, "sample_with_UC.PDF") 
         self.pdf_with_simple_text_short = pjoin(self.ocr_folder,"sample_with_short.pdf") 
         #shutil.copy(pjoin(self.path,"test_resources/pdf_with_simple_text.pdf"),self.pdf_with_simple_text )       
         #shutil.copy(pjoin(self.path,"test_resources/pdf_with_simple_text_short.pdf"),self.pdf_with_simple_text_short )  
@@ -203,6 +204,19 @@ class Test_analyse(unittest.TestCase):
         
         self.assertDictContainsSubset(
             ({self.expected_destination2:self.pdf_with_simple_text}), 
+            (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[0])) 
+
+    def test_pdf_full_known_content_copy_UC_PDF(self):
+        shutil.copy(
+            pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),
+            self.pdf_with_simple_text_UC )
+        
+        self.assertDictContainsSubset(
+            ({self.expected_destination:self.pdf_with_simple_text_UC}), 
+            (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[0]))
+        
+        self.assertDictContainsSubset(
+            ({self.expected_destination2:self.pdf_with_simple_text_UC}), 
             (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[0])) 
  
                       

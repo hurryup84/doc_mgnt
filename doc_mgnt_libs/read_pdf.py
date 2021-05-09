@@ -25,7 +25,7 @@ import logging
 logger = logging.getLogger('root')
 
 import locale
-#locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+locale.setlocale(locale.LC_ALL, 'de_DE')
 
 
 
@@ -303,7 +303,7 @@ def analyse(folder, output_folder, keyfile_path):
 	mail_info_path = {}
 	created_files = []
 	for pdf in os.listdir(folder):
-		if pdf.endswith(".pdf"):
+		if pdf.endswith(".pdf") or pdf.endswith(".PDF"):
 			logger.info("-------------------------------------")
 			logger.debug("processing %s " % pdf)
 			in_file = pjoin(folder, pdf)
