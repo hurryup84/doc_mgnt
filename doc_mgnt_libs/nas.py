@@ -10,7 +10,7 @@ logger = logging.getLogger('root')
 def check_scan_folder(tempfolder, config):
     for each in os.listdir(config["SCAN_INPUT"]):
         logger.info("move file %s from scan input to OCR folder " % each)
-        os.rename(pjoin(config["SCAN_INPUT"],each), pjoin(tempfolder, each))
+        shutil.move(pjoin(config["SCAN_INPUT"],each), pjoin(tempfolder, each))
 
 
 
@@ -38,3 +38,5 @@ def save_files_to_depot(local_output_folder, config):
     logger.debug("DIGITAL_DEPOTOLDER:%s" % config["DIGITAL_DEPOT"])
 
     shutil.copytree(local_output_folder, config["DIGITAL_DEPOT"], dirs_exist_ok=True)
+
+

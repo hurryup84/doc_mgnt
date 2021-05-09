@@ -59,16 +59,15 @@ def ocr(folder, config):
 
     for filename in os.listdir(folder):
         if filename.endswith(".pdf") or filename.endswith(".PDF"):
-            new_filename = "%s.pdf" % filename.split(".")[0]
             logger.debug("%s: checking if document has already text" %filename)
             out_file = pjoin(folder, "dummy.txt")
-            test_content = read_pdf.get_text(pjoin(folder, new_filename))
+            test_content = read_pdf.get_text(pjoin(folder, filename))
             if len(test_content ) > 13:
                 logger.info("%s: found already text in pdf. skippin ocr" %filename)
                 return True
             elif config["OCR"] == "True":
                 logger.info("%s: no text in pdf. doing ocr now" %filename)
-                cmd = ["ocrmypdf",  "--deskew", "--tesseract-timeout", "1800", "-l", "deu" , pjoin(folder, filename) , pjoin(folder, new_filename) ]
+                cmd = ["ocrmypdf",  "--deskew", "--tesseract-timeout", "1800", "-l", "deu" , pjoin(folder, filename) , pjoin(folder, filename) ]
                 t_begin = time.time()
                 proc = subprocess.Popen(
                     cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

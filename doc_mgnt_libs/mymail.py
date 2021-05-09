@@ -19,10 +19,7 @@ import logging
 import os
 import smtplib
 import sys
-try:
-    locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
-except locale.Error:
-    locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
+
 logger = logging.getLogger('root')
 pjoin = os.path.join
 

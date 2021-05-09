@@ -152,4 +152,16 @@ python handle_documents.py PATH_TO_FOLDER_WITH_CONFIG_FILE
 
 
 
+## Docker creation
 
+# get requirements.txt:
+python3 -m venv
+source venv/bin/activate
+
+install dependencies with pip3, e.g
+pip3 install pdfminer3
+
+pip3 freeze > requirements.txt
+
+#create docker
+sudo docker build -t doc_mgnt .

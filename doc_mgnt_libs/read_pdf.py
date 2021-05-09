@@ -2,7 +2,6 @@
 import shutil
 import re
 import os
-import PyPDF2
 from datetime import datetime
 from datetime import date
 pjoin = os.path.join
@@ -275,7 +274,6 @@ def search_for_date(content):
 	return selected_date
 
 def get_text(in_file):
-
 	resource_manager = PDFResourceManager()
 	fake_file_handle = io.StringIO()
 	converter = TextConverter(resource_manager, fake_file_handle, laparams=LAParams())
