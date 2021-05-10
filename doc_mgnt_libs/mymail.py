@@ -66,7 +66,8 @@ def update_key_dict(dpath, dfile, key, value):
 
 def update_keys(subjects, keyfile_path):
     '''tested'''
-
+    UNKNOWN_HELP = """could not identify keyword, please use one of #CAT #CID #CWOID #DOC #NAME #CIDCAT #CWOIDCAT"""
+    #UNKNOWN_HELP = "could not identify keyword, "
     key_infos = ""
     for subject in subjects:
 
@@ -98,7 +99,11 @@ def update_keys(subjects, keyfile_path):
                 key_info = update_key_dict(keyfile_path, "DOCTYPES.json", key, value) 
 
             elif key_type == "#NAME":
-                key_info = update_key_dict(keyfile_path, "NAMES.json", key, value)            
+                key_info = update_key_dict(keyfile_path, "NAMES.json", key, value)   
+
+            else:
+                logger.error(UNKNOWN_HELP)
+                key_info = "%s \n %s" %(key_info, UNKNOWN_HELP)        
 
         elif key_len == 4:
             if key_type == "#CIDCAT":
@@ -107,7 +112,10 @@ def update_keys(subjects, keyfile_path):
           
             elif key_type == "#CWOIDCAT":
                 key_info = update_key_dict(keyfile_path, "COMPANIES_WO_ID.json", key, value)
-                key_info = "%s\n%s" %(key_info, update_key_dict(keyfile_path, "CATEGORY.json", value, value_cat)   )           
+                key_info = "%s\n%s" %(key_info, update_key_dict(keyfile_path, "CATEGORY.json", value, value_cat)   ) 
+            else:
+                logger.error(UNKNOWN_HELP)
+                key_info = "%s \n %s" %(key_info, UNKNOWN_HELP)            
         else:
             warn = "Get not well formed email subject, regard keylen"
             logger.error(warn)

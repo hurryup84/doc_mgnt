@@ -550,12 +550,19 @@ class Test_update_keys(unittest.TestCase):
         self.assertEqual(mymail.update_keys(["#cidcat new_search_string new_company new_category"], self.json_folder), "updated CUSTOMER_ID.json with \n new_search_string : new_company\nupdated CATEGORY.json with \n new_company : new_category\n")
 
     def test_cidcat_no_hash(self):
-        self.assertEqual(mymail.update_keys(["CIDCAT new_search_string new_company new_category"], self.json_folder), "\n")
-        self.assertEqual(mymail.update_keys(["cidcat new_search_string new_company new_category"], self.json_folder), "\n")
+        self.assertEqual(mymail.update_keys(["CIDCAT new_search_string new_company new_category"], self.json_folder), """ \n could not identify keyword, please use one of #CAT #CID #CWOID #DOC #NAME #CIDCAT #CWOIDCAT\n""")
+        self.assertEqual(mymail.update_keys(["cidcat new_search_string new_company new_category"], self.json_folder), """ \n could not identify keyword, please use one of #CAT #CID #CWOID #DOC #NAME #CIDCAT #CWOIDCAT\n""")
   
     def test_cid_and_cat(self):
         self.assertEqual(mymail.update_keys(["#CID new_search_string new_company", "#CAT new_search_string new_company"], self.json_folder), "updated CATEGORY.json with \n new_search_string : new_company\nupdated CUSTOMER_ID.json with \n new_search_string : new_company\n")
         self.assertEqual(mymail.update_keys(["#cid new_search_string new_company", "#cat new_search_string new_company"], self.json_folder), "updated CATEGORY.json with \n new_search_string : new_company\nupdated CUSTOMER_ID.json with \n new_search_string : new_company\n")
+
+    def test_unknown(self):
+        self.assertEqual(mymail.update_keys(["#CWID new_search_string new_company"], self.json_folder), """ \n could not identify keyword, please use one of #CAT #CID #CWOID #DOC #NAME #CIDCAT #CWOIDCAT\n""")
+
+    def test_unknown2(self):
+        self.assertEqual(mymail.update_keys(["#CWID new_search_string new_company sometjing_else"], self.json_folder), """ \n could not identify keyword, please use one of #CAT #CID #CWOID #DOC #NAME #CIDCAT #CWOIDCAT\n""")
+
 
 
     def tearDown(self):
