@@ -116,7 +116,7 @@ class Test_read_pdf(unittest.TestCase):
         self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[0],(["2017", "Firma_found"]) )
         self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][0],("2017-02-26") )        
         self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][1],("MaxMustermann_found") )  
-        self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][2],("NA") ) 
+        self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][2],("") ) 
         self.assertTrue(1000 <= int((read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][3]) <= 999999)        
         self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][4],("MeinFirma") )  
         self.assertEqual((           read_pdf.analyse_content(self.sample_text, self.lod_CAT, self.lod_CWOID, self.lod_CID, self.lod_e, self.lod_N))[1][5],("457689_found") )                                  
@@ -173,7 +173,7 @@ class Test_analyse(unittest.TestCase):
             self.output_folder, 
             "1984", 
             "UNDEFINED_CATEGORY", 
-            "1984-01-01_Familie_NA_%s.pdf" %self.unique)         
+            "1984-01-01_Familie_%s.pdf" %self.unique)         
 
     def test_pdf_unknown_content_copy(self):
         shutil.copy(
@@ -190,7 +190,7 @@ class Test_analyse(unittest.TestCase):
             self.pdf_with_simple_text_short )
 
         self.assertDictContainsSubset(
-            ({'1984-01-01_Familie_NA_%s.pdf' %self.unique: 'UNDEFINED_CATEGORY'}), 
+            ({'1984-01-01_Familie_%s.pdf' %self.unique: 'UNDEFINED_CATEGORY'}), 
             (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[1]))                  
 
     def test_pdf_full_known_content_copy(self):
@@ -267,7 +267,7 @@ class Test_analyse(unittest.TestCase):
                 (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[1]))  
 
             self.assertDictContainsSubset(
-                ({'1984-01-01_Familie_NA_%s.pdf' %self.unique: 'UNDEFINED_CATEGORY'}), 
+                ({'1984-01-01_Familie_%s.pdf' %self.unique: 'UNDEFINED_CATEGORY'}), 
                 (read_pdf.analyse(self.ocr_folder, self.output_folder, self.json_folder)[1] ))                                
 
 

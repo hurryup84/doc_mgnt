@@ -58,7 +58,7 @@ def analyse_content(content,CATEGORY,COMPANIES_WO_ID , CUSTOMER_ID, DOCTYPES, NA
 
 	
 	company_id = search_in_content("Company by ID", CUSTOMER_ID, lcontent, "UNDEFINED_CUSTOMER_ID")
-	doctype = search_in_content("Document type", DOCTYPES, lcontent, "NA")
+	doctype = search_in_content("Document type", DOCTYPES, lcontent, "")
 	name = search_in_content("Names", NAMES, lcontent, "Familie" )
 	company = search_in_content("Company without ID", COMPANIES_WO_ID, lcontent, "UNDEFINED_COMPANY" )
 
@@ -81,17 +81,21 @@ def analyse_content(content,CATEGORY,COMPANIES_WO_ID , CUSTOMER_ID, DOCTYPES, NA
 
 	unique = pdeudounique()
 	filename = sorted([])
-	filename = filename + [date , name, doctype, "%s" % unique]
+	#filename = filename + [date] 
+	filename = filename + [date, name, doctype, "%s" % unique] 
 
 	if company != "UNDEFINED_COMPANY":
 		filename.append(company)
 
+	# The company can also be identified by an ID. If the ID does not eqal the name of the compayn, we should add it to the filename
 	if company != company_id:
 		if company_id != "UNDEFINED_CUSTOMER_ID":
 			filename.append(company_id)	
 	
 	if company == "UNDEFINED_COMPANY" and company == "UNDEFINED_CUSTOMER_ID":
 		filename.append("NO_REFERENCE")
+
+	#filename = filename + [ name, doctype, "%s" % unique]
 
 	folder = []
 	if category != "UNDEFINED_CATEGORY":
@@ -315,7 +319,7 @@ def analyse(folder, output_folder, keyfile_path):
 											CUSTOMER_ID, 
 											DOCTYPES, NAMES)
 			try:
-				new_filename = "%s.pdf" % "_".join(file_tags)
+				new_filename = "%s.pdf" % "_".join(file_tags).replace("__", "_")  # __ in case of unknow doctype
 			except TypeError:
 				logger.error("errors with filename %s" %filetags)
 				#import pdb; pdb.set_trace()
