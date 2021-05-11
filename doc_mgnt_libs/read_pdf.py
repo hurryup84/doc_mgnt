@@ -45,7 +45,7 @@ def search_in_content(lookup_type, lookup_dict, content, bad_return):
 
 
 def pdeudounique():
-	return datetime.strftime(datetime.now(), "%m%d%H")
+	return datetime.strftime(datetime.now(), "ID%m%d%H")
 
 
 def analyse_content(content,CATEGORY,COMPANIES_WO_ID , CUSTOMER_ID, DOCTYPES, NAMES):
