@@ -220,29 +220,30 @@ def search_for_date(content):
 				except ValueError:
 					logger.error("found pseudo date -Januar1984-, skipping it")							
 
-	#### 01.01.84 this will make 11.02.2017 to 22.02.2020 , so we do it only if all the previos have failed 
-	if not dates:
-		matches = re.findall(r'\d{2}\.\d{2}\.\d{2}', content)  
-		if matches:
-			for match in matches:
-				try:
-					fdate = datetime.strptime(match, '%d.%m.%y').date()
-					test = fdate.strftime('%d.%m.%y')
-					dates.append(fdate)
-					logger.debug("format 01.01.84 found: %s" % match)
-				except ValueError:
-					logger.error("found pseudo date -01.01.84-, skipping it")
+	#### 01.01.84 this will make 11.02.2017 to 11.02.2020 , so we do it only if all the previos have failed 
+	#if not dates:
+	matches = re.findall(r'\d{2}\.\d{2}\.\d{2}\D{2}', content)  
+	if matches:
+		for match in matches:
+			try:
+				fdate = datetime.strptime(match[:8], '%d.%m.%y').date()
+				test = fdate.strftime('%d.%m.%y')
+				dates.append(fdate)
+				logger.debug("format 01.01.84 found: %s" % match)
+			except ValueError:
+				logger.error("found pseudo date -01.01.84-, skipping it")
+				logger.error(match)
 
-		matches = re.findall(r'\d{2}\-\d{2}\-\d{2}', content)  
-		if matches:
-			for match in matches:
-				try:
-					fdate = datetime.strptime(match, '%d-%m-%y').date()
-					test = fdate.strftime('%d-%m-%y')
-					dates.append(fdate)
-					logger.debug("format 01-01-84 found: %s" % match)
-				except ValueError:
-					logger.error("found pseudo date #01-01-84#, skipping it")					
+	matches = re.findall(r'\d{2}\-\d{2}\-\d{2}\D{2}', content)  
+	if matches:
+		for match in matches:
+			try:
+				fdate = datetime.strptime(match[:8], '%d-%m-%y').date()
+				test = fdate.strftime('%d-%m-%y')
+				dates.append(fdate)
+				logger.debug("format 01-01-84 found: %s" % match)
+			except ValueError:
+				logger.error("found pseudo date #01-01-84#, skipping it")					
 	#### 01011984
 	if not dates:
 		matches = re.findall(r'\d{2}\d{2}\d{4}', content)  

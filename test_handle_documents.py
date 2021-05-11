@@ -300,6 +300,7 @@ class Test_search_date(unittest.TestCase):
         print("Executing :%s" %self.id())
 
         self.expected_date = datetime.strptime("04-05-2017", "%d-%m-%Y").date()
+        self.expected_date2 = datetime.strptime("01-04-2019", "%d-%m-%Y").date()
         print("------------------------------------------------------------")
         print("Executing :%s" %self.id())
        # import pdb; pdb.set_trace()
@@ -335,11 +336,11 @@ class Test_search_date(unittest.TestCase):
         self.assertEqual(read_pdf.search_for_date(content), datetime.strptime("01-01-1984", "%d-%m-%Y").date())
 
     def test_search_date8(self):
-        content = "jfeiwojfiwej04-05-17pokrgporek"
-        self.assertEqual(read_pdf.search_for_date(content), self.expected_date)
+        content = "jfeiwojfiwej01-04-19pokrgporek"
+        self.assertEqual(read_pdf.search_for_date(content), self.expected_date2)
 
     def test_search_date9(self):
-        content = "jfeiwojfiwej04-05-2017pokrgp04-06-17orek"
+        content = "jfeiwojfiwej04-05-2017pokrgp04-03-17orek"
         self.assertEqual(read_pdf.search_for_date(content), self.expected_date)
 
     def test_search_date10(self):
@@ -369,6 +370,10 @@ class Test_search_date(unittest.TestCase):
     def test_search_date16(self):
         content = "jfeiwojkr04 . 0 5 . 201 7gfiwepokr01-01-2017gporek"
         self.assertEqual(read_pdf.search_for_date(content), self.expected_date)
+
+    def test_search_date17(self):
+        content = """3storf01.04.19AA/150/a_c-fe13.03.1935.2"""
+        self.assertEqual(read_pdf.search_for_date(content), self.expected_date2)
 
 
 
