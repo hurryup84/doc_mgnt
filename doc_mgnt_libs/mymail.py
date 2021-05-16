@@ -160,7 +160,7 @@ def get_mail(download_folder, config):
         emailSubject = decode_header(mail['subject'])[0][0]
 
         if "mattis" in mail['from'] or "myfritz.net" in mail['from']:      
-            if emailSubject.startswith("#"):
+            if str(emailSubject).startswith("#"):
                 subjects.append(emailSubject)
             for part in mail.walk():
                 if part.get_content_maintype() == 'multipart':

@@ -22,6 +22,7 @@ logfile = pjoin(tempfolder, "hande_documents.log")
 logger = doc_mgnt_libs.log.setup_custom_logger('root', logfile, "DEBUG", "w")
 
 def main(arguments):
+    logger.info("Python version %s" %sys.version)
 
     if not len(arguments) == 2:
         print("usage:")

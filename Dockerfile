@@ -9,4 +9,4 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY handle_documents.py handle_documents.py
 COPY doc_mgnt_libs doc_mgnt_libs
-CMD ["python", "/app/handle_documents.py", "/config/config.json"]
+CMD ["python3", "/app/handle_documents.py", "/config"]
