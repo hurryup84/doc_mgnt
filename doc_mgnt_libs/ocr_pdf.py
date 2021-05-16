@@ -57,14 +57,19 @@ def ocr(folder, config):
     #        logger.info("%s: is jpeg file, coverting to pdf" %filename)
     #        convert_jpg_to_pdf(filename,folder)
 
+    returns = sorted([])
+
     for filename in os.listdir(folder):
         if filename.endswith(".pdf") or filename.endswith(".PDF"):
             logger.debug("%s: checking if document has already text" %filename)
             out_file = pjoin(folder, "dummy.txt")
-            test_content = read_pdf.get_text(pjoin(folder, filename))
-            if len(test_content ) > 13:
+            test_content = read_pdf.get_text_from_pdf(pjoin(folder, filename))
+            logger.debug(len(test_content))
+            logger.debug(test_content)
+            if len(test_content ) > 15:
                 logger.info("%s: found already text in pdf. skippin ocr" %filename)
-                return True
+                returns.append(True)
+                #return True
             elif config["OCR"] == "True":
                 logger.info("%s: no text in pdf. doing ocr now" %filename)
                 cmd = ["ocrmypdf",  "--deskew", "--tesseract-timeout", "1800", "-l", "deu" , pjoin(folder, filename) , pjoin(folder, filename) ]
@@ -79,6 +84,9 @@ def ocr(folder, config):
                     logger.info("%s: OCR complete" %filename)
                 logger.debug(result)
                 logger.info("%s:ocr took %.1f seonds" % (filename, (t_end - t_begin)))
-                return True
+                returns.append(True)
+                #return True
             else:
-                return False
+                returns.append(False)
+                #return False
+    return returns

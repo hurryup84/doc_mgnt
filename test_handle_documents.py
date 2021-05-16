@@ -610,48 +610,61 @@ class Test_ocr_pdf(unittest.TestCase):
         print("Executing :%s" %self.id())
 
         self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
-        elf.config = {"OCR":"True"}
+        self.config = {"OCR":"False"}
         self.pdf_without_simple_text = pjoin(self.tempfolder, "sample_without.pdf")
-        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")      
+        self.pdf_without_simple_text_short = pjoin(self.tempfolder,  "sample_without_short.pdf")  
+            
         self.path = os.path.abspath(".") 
         pass 
 
     def test_pdf_with_simple_text_without_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_without_simple_text )
-        ocr_pdf.ocr(self.tempfolder,self.config)
-        test_content = read_pdf.get_text(self.pdf_without_simple_text)
-        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)
+        ocr_feature = ocr_pdf.ocr(self.tempfolder,self.config)
+        if self.config["OCR"] == "True":
+            test_content = read_pdf.get_text_from_pdf(self.pdf_without_simple_text)
+            self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
+            self.assertEqual(test_content, self.expected_string)
+        else:
+            self.assertEqual(ocr_feature, [True])
 
     def test_pdf_with_simple_text_with_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
-        ocr_pdf.ocr(self.tempfolder,self.config)
-        test_content = read_pdf.get_text(self.pdf_without_simple_text)
-        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)   
+        ocr_feature =ocr_pdf.ocr(self.tempfolder,self.config)
+        if self.config["OCR"] == "True":
+            test_content = read_pdf.get_text_from_pdf(self.pdf_without_simple_text)
+            self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
+            self.assertEqual(test_content, self.expected_string) 
+        else:
+            self.assertEqual(ocr_feature, [False])  
          
 
     def test_pdf_with_simple_text_without_ocr_multiple_files(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text_short.pdf"),self.pdf_without_simple_text_short )        
-        ocr_pdf.ocr(self.tempfolder,self.config)
-        test_content = read_pdf.get_text(self.pdf_without_simple_text)  
-        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)
-        test_content_short = read_pdf.get_text(self.pdf_without_simple_text_short)  
-        self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"  
-        self.assertEqual(test_content_short, self.expected_string_short)  
+        ocr_feature= ocr_pdf.ocr(self.tempfolder,self.config)
+        if self.config["OCR"] == "True":  
+            test_content = read_pdf.get_text_from_pdf(self.pdf_without_simple_text)  
+            self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
+            self.assertEqual(test_content, self.expected_string)
+            test_content_short = read_pdf.get_text_from_pdf(self.pdf_without_simple_text_short)  
+            self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"  
+            self.assertEqual(test_content_short, self.expected_string_short)  
+        else:
+            self.assertEqual(ocr_feature, [False, False])  
 
               
     def test_pdf_with_simple_text_with_and_without_ocr_multiple_files(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
-        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text_short.pdf"),self.pdf_with_simple_text_short )        
-        ocr_pdf.ocr(self.tempfolder,self.config)
-        test_content = read_pdf.get_text(self.pdf_without_simple_text)  
-        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
-        self.assertEqual(test_content, self.expected_string)
-        test_content_short = read_pdf.get_text(self.pdf_with_simple_text_short)
-        self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c"    
+        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text_short.pdf"),self.pdf_without_simple_text_short )        
+        ocr_feature = ocr_pdf.ocr(self.tempfolder,self.config)
+        if self.config["OCR"] == "True":  
+            test_content = read_pdf.get_text_from_pdf(self.pdf_without_simple_text)  
+            self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
+            self.assertEqual(test_content, self.expected_string)
+            test_content_short = read_pdf._from_pdf(self.pdf_with_simple_text_short)
+            self.expected_string_short = "DiesisteinzweiternichtsolangerBeispieltext\x0c" 
+        else:
+            self.assertEqual(ocr_feature, [True, False])   
 
     def tearDown(self):
         try:
@@ -675,12 +688,12 @@ class Test_ocr_not_supported_pdf(unittest.TestCase):
 
     def test_pdf_with_simple_text_without_ocr_can_not_do_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_without_simple_text.pdf"),self.pdf_without_simple_text )
-        self.assertEqual(False, ocr_pdf.ocr(self.tempfolder,self.config))
+        self.assertEqual([False], ocr_pdf.ocr(self.tempfolder,self.config))
 
     def test_pdf_with_simple_text_with_ocr_can_not_do_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_with_simple_text )
-        self.assertEqual(True, ocr_pdf.ocr(self.tempfolder,self.config)) 
-        test_content = read_pdf.get_text(self.pdf_with_simple_text)
+        self.assertEqual([True], ocr_pdf.ocr(self.tempfolder,self.config)) 
+        test_content = read_pdf.get_text_from_pdf(self.pdf_with_simple_text)
         self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string) 
           
@@ -701,16 +714,42 @@ class Test_ocr_jpeg_pdf(unittest.TestCase):
         print("Executing :%s" %self.id())
         self.config = {"OCR":"True"}
         self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
-        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")
-        self.jpeg_with_simple_text_pdf = pjoin(self.tempfolder,  "sample_jpeg_with_short.pdf")         
+        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")       
         self.path = os.path.abspath(".") 
         pass
 
     def test_jpeg_with_simple_text_with_ocr(self):
         shutil.copy(pjoin(self.path,"test_resources/jpegs/geheim.JPG"),self.jpeg_with_simple_text )
         ocr_pdf.ocr(self.tempfolder, self.config)
-        test_content = read_pdf.get_text(self.jpeg_with_simple_text_pdf)
+        test_content = read_pdf.get_text_from_jpeg(self.jpeg_with_simple_text)
         self.expected_string = "geheimzuhalten\x0c"
+        self.assertEqual(test_content, "not implemented")  
+
+    def tearDown(self):
+        try:
+            shutil.rmtree(self.tempfolder)
+            #print "removed %s" % self.tempfolder
+        except OSError as why:
+            print(why)
+
+
+class Test_ocr_jpeg_and_pdf(unittest.TestCase):
+    def setUp(self):
+        print("------------------------------------------------------------")
+        print("Executing :%s" %self.id())
+        self.config = {"OCR":"True"}
+        self.tempfolder = tempfile.mkdtemp(dir="/tmp", prefix="doc_mgnt")
+        self.jpeg_with_simple_text = pjoin(self.tempfolder,  "sample_jpeg_with_short.jpg")   
+        self.pdf_with_simple_text = pjoin(self.tempfolder,  "sample_with_short.pdf")    
+        self.path = os.path.abspath(".") 
+        pass
+
+    def test_jpeg_and_pdf_with_simple_text_with_ocr(self):
+        shutil.copy(pjoin(self.path,"test_resources/jpegs/geheim.JPG"),self.jpeg_with_simple_text )
+        shutil.copy(pjoin(self.path,"test_resources/pdfs/pdf_with_simple_text.pdf"),self.pdf_with_simple_text )
+        ocr_pdf.ocr(self.tempfolder, self.config)
+        test_content = read_pdf.get_text_from_pdf(self.pdf_with_simple_text)
+        self.expected_string = "Hallo,dasisteinTestText.HierstehtdasDatum26.02.2017HieristeinkeyVericherungDiesisteineRechnungfürMaxMustermannMeineKundennummerist457689\x0c"
         self.assertEqual(test_content, self.expected_string)  
 
     def tearDown(self):
@@ -829,12 +868,9 @@ if __name__ == '__main__':
     
 
     slow = unittest.TestSuite()
-    if json.load(open(pjoin(os.path.abspath(".") ,
-                            "test_resources" ,
-                             "main_test",
-                              "config.json")))["OCR"] == "True":
-        slow.addTest(unittest.makeSuite(Test_ocr_pdf))
-        slow.addTest(unittest.makeSuite(Test_ocr_jpeg_pdf))  
+    slow.addTest(unittest.makeSuite(Test_ocr_pdf))
+    slow.addTest(unittest.makeSuite(Test_ocr_jpeg_and_pdf))
+    slow.addTest(unittest.makeSuite(Test_ocr_jpeg_pdf))  
     slow.addTest(unittest.makeSuite(Test_new_scanned_files))
     slow.addTest(unittest.makeSuite(Test_ocr_not_supported_pdf))
     slow.addTest(unittest.makeSuite(Test_send_mail_key))

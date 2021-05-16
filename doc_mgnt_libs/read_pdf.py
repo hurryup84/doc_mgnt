@@ -278,7 +278,10 @@ def search_for_date(content):
 
 	return selected_date
 
-def get_text(in_file):
+def get_text_from_jpeg(in_file):
+	return "not implemented"
+
+def get_text_from_pdf(in_file):
 	resource_manager = PDFResourceManager()
 	fake_file_handle = io.StringIO()
 	converter = TextConverter(resource_manager, fake_file_handle, laparams=LAParams())
@@ -312,7 +315,7 @@ def analyse(folder, output_folder, keyfile_path):
 			logger.info("-------------------------------------")
 			logger.debug("processing %s " % pdf)
 			in_file = pjoin(folder, pdf)
-			content = get_text(in_file)
+			content = get_text_from_pdf(in_file)
 			folder_tags, file_tags , second_folder = analyse_content(
 											content,
 											CATEGORY,
