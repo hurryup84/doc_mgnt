@@ -9,8 +9,9 @@ logger = logging.getLogger('root')
 
 def check_scan_folder(tempfolder, config):
     for each in os.listdir(config["SCAN_INPUT"]):
-        logger.info("move file %s from scan input to OCR folder " % each)
-        shutil.move(pjoin(config["SCAN_INPUT"],each), pjoin(tempfolder, each))
+        if each.endswith("pdf") or each.endswith("PDF"):
+            logger.info("move file %s from scan input to OCR folder " % each)
+            shutil.move(pjoin(config["SCAN_INPUT"],each), pjoin(tempfolder, each))
 
 
 
