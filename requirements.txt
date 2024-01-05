@@ -1,4 +1,4 @@
 chardet==4.0.0
 pdfminer3==2018.12.3.0
-pycryptodome==3.10.1
+pycryptodome==3.19.1
 sortedcontainers==2.3.0
