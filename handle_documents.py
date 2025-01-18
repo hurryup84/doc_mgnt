@@ -38,6 +38,11 @@ def main(arguments):
         keyfile_path = arguments[1]
         try:
             config = json.load(open(pjoin(keyfile_path, "config.json")))
+            
+            # Ensure pictures volume exists if configured
+            if "PICTURES_VOLUME" in config:
+                os.makedirs(config["PICTURES_VOLUME"], exist_ok=True)
+                
         except IOError as e:
             logger.error("could not find configfile")
             logger.error(e)

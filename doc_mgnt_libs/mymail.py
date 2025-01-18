@@ -19,6 +19,8 @@ import logging
 import os
 import smtplib
 import sys
+import imghdr
+import shutil
 
 logger = logging.getLogger('root')
 pjoin = os.path.join
@@ -128,17 +130,16 @@ def update_keys(subjects, keyfile_path):
 
 def get_mail(download_folder, config):
     '''tested'''
-
     subjects = []
+    temp_img_folder = None  # Initialize to None
 
     imapSession = imaplib.IMAP4_SSL(config["IMAP_SERVER"])
     typ, accountDetails = imapSession.login(config["MAILUSER"], config["MAILPASS"])
     if typ != 'OK':
         logger.error('Not able to sign in!')
     else:
-        logger.info( "logged in")
+        logger.info("logged in")
 
-    #imapSession.select('[Gmail]/All Mail')
     imapSession.select()
     typ, data = imapSession.search(None, "UnSeen")
     if typ != 'OK':
@@ -153,15 +154,17 @@ def get_mail(download_folder, config):
             logger.error('Error fetching mail.')
             raise
         emailBody = messageParts[0][1]
-        #import pdb; pdb.set_trace()
         mail = email.message_from_string(str(emailBody,'utf-8'))
-        #mail = email.message_from_string(emailBody)
         default_charset = 'ASCII'        
         emailSubject = decode_header(mail['subject'])[0][0]
 
         if "mattis" in mail['from'] or "myfritz.net" in mail['from']:      
             if str(emailSubject).startswith("#"):
                 subjects.append(emailSubject)
+            
+            # Check if subject is 'tablet'
+            is_tablet_subject = str(emailSubject).lower() == 'tablet'
+            
             for part in mail.walk():
                 if part.get_content_maintype() == 'multipart':
                     continue
@@ -169,18 +172,41 @@ def get_mail(download_folder, config):
                     continue
                 fileName = part.get_filename()
                 if bool(fileName):
-                    filePath = os.path.join(download_folder, fileName)
+                    # Determine if file is an image
+                    is_image = part.get_content_maintype() == 'image'
+                    
+                    # Create temp_img_folder only when needed
+                    if is_tablet_subject and is_image and temp_img_folder is None:
+                        temp_img_folder = os.path.join(download_folder, 'temp_images')
+                        os.makedirs(temp_img_folder, exist_ok=True)
+                    
+                    # For tablet subject, only process images
+                    if is_tablet_subject and not is_image:
+                        continue
+                    # For non-table subjects, only process PDFs
+                    if not is_tablet_subject and not fileName.lower().endswith('.pdf'):
+                        continue
+                        
+                    # Choose appropriate folder based on content type
+                    if is_tablet_subject and is_image:
+                        temp_path = os.path.join(temp_img_folder, fileName)
+                        final_path = os.path.join(config.get("PICTURES_VOLUME", download_folder), fileName)
+                        
+                        if not os.path.isfile(final_path):
+                            logger.info("found new image %s" % fileName)
+                            with open(temp_path, 'wb') as fp:
+                                fp.write(part.get_payload(decode=True))
+                            shutil.move(temp_path, final_path)
+                    else:
+                        filePath = os.path.join(download_folder, fileName)
+                        if not os.path.isfile(filePath):
+                            logger.info("found new file %s" % fileName)
+                            with open(filePath, 'wb') as fp:
+                                fp.write(part.get_payload(decode=True))
                 elif not emailSubject.startswith("#"):
                     warn = "$ got email without pdf and without command%s" %mail['subject']
                     logger.warning(warn)
                     subjects.append(warn)
-                if not os.path.isfile(filePath) :
-                    logger.info("found new file %s" % fileName)
-                    fp = open(filePath, 'wb')
-                    fp.write(part.get_payload(decode=True))
-                    fp.close()
-                else:
-                    logger.warning("skipping file, because it was already donwloaded %s" % fileName)
         else:
             warn = "$ got email from unknown sender %s" %mail['from']
             logger.warning(warn)

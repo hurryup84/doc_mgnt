@@ -1,8 +1,8 @@
-
 FROM python:3.8
 WORKDIR /app
 VOLUME /scan_input
 VOLUME /digital_depot
+VOLUME /pictures
 VOLUME /config
 VOLUME /tmp
 COPY requirements.txt requirements.txt
