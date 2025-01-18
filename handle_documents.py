@@ -33,7 +33,7 @@ def main(arguments):
         shutil.rmtree(tempfolder)    
         shutil.rmtree(local_output_folder)  
         
-        return False
+        return 0
     else:
         keyfile_path = arguments[1]
         try:
@@ -48,7 +48,7 @@ def main(arguments):
             logger.error(e)
             shutil.rmtree(tempfolder)    
             shutil.rmtree(local_output_folder)  
-            return False
+            return 0
             
         subjects = mymail.get_mail(tempfolder, config)
         key_info = mymail.update_keys(subjects, keyfile_path)
@@ -64,7 +64,7 @@ def main(arguments):
             nas.save_files_to_depot(local_output_folder, config)
         shutil.rmtree(tempfolder)    
         shutil.rmtree(local_output_folder)  
-        return True
+        return 0
 
 if __name__ == '__main__':
-    main(sys.argv)
+    sys.exit(main(sys.argv))
