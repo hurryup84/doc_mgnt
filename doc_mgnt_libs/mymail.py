@@ -190,15 +190,20 @@ def get_mail(download_folder, config):
                     if is_tablet_subject and is_image:
                         temp_path = os.path.join(temp_img_folder, fileName)
                         pictures_volume = config.get("PICTURES_VOLUME", download_folder)
-                        os.makedirs(pictures_volume, exist_ok=True)  # Ensure directory exists
+                        logger.info("Using pictures volume: %s" % pictures_volume)
+                        logger.info("Temp path: %s" % temp_path)
+                        
+                        os.makedirs(pictures_volume, exist_ok=True)
                         final_path = os.path.join(pictures_volume, fileName)
+                        logger.info("Final path: %s" % final_path)
                         
                         if not os.path.isfile(final_path):
-                            logger.info("found new image %s" % fileName)
+                            logger.info("Writing image to temp location")
                             with open(temp_path, 'wb') as fp:
                                 fp.write(part.get_payload(decode=True))
+                            logger.info("Moving image from %s to %s" % (temp_path, final_path))
                             shutil.move(temp_path, final_path)
-                            logger.info("moved image to %s" % final_path)  # Add logging
+                            logger.info("Successfully moved image to %s" % final_path)
                     else:
                         filePath = os.path.join(download_folder, fileName)
                         if not os.path.isfile(filePath):
